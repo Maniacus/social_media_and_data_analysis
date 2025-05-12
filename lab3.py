@@ -1,5 +1,4 @@
 import networkx as nx
-import matplotlib.pyplot as plt
 
 # Параметры графа полученные от преподователя
 n = 15
