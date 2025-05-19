@@ -46,10 +46,12 @@ def dijkstra(graph, start, end=None):
         path.reverse()
 
         if path[0] == start:
+            # Возвращаем dist, path (расстояние и путь) 
             return dist[end], path    
         else:
             return None
-    # Иначе возвращаем расстояния    
+
+    # Если конечная вершина не указана - возвращаем расстояния    
     else:
         return dist
 
