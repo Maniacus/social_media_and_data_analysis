@@ -67,8 +67,8 @@ dist, previous = dijkstra(graph, start_node)
 
 print("Кратчайшие расстояния:")
 for node in dist:
-    print(f"{start_node} -> {node}: {dist[node]}")
-print('_______________________')
+    print(f"от {start_node} до {node}: {dist[node]}")
+print('\n')
 print("Кратчайшие пути:")
 
 for node in graph:
