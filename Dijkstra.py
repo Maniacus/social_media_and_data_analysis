@@ -1,89 +1,79 @@
-def dijkstra(graph, start, end=None):
-    # Изначально все расстояния условно бесконечны (999)
-    dist = {node: 999 for node in graph} 
+def dijkstra(graph, start):
+    # Изначально все расстояния бесконечны (float('infinity'))
+    dist = {node: float('infinity') for node in graph} 
     # Устанавливаем расстояние до стартовой вершины равной 0
     dist[start] = 0
-    # Очередь, изначально содержит только передаваемую в функцию вершину
-    queue = [start]
-    # Словарь для хранения предков вершин (для дальнейшего восстановления пути)
     previous = {node: None for node in graph}
+    # Множество непосещённых вершин. Содержит все вершины графа, по мере работы из него удаляются посещённые вершины.
+    unvisited = set(graph.keys())
 
-    # Условие выполняется пока очередь не пуста
-    while queue:
-        # Выбираем первую вершину из очереди, (удаляя ее из очереди)
-        current_node = queue.pop(0)
+    while unvisited:
+        # На каждом шаге обрабатываем вершину с наименьшим известным расстоянием от стартовой вершины
+        # Выбираем вершину с минимальным расстоянием (на первой итерации это start_node)
+        current_node = min(unvisited, key=lambda v: dist[v])
 
-        # Завершение цикла в случае достижения конечной вершины
-        if end is not None and current_node == end:
+        # Если минимальное расстояние - бесконечность, остальные вершины недостижимы
+        if dist[current_node] == float('infinity'):
             break
 
-        # Проходим по всем смежным вершинам
+        # Обновляем расстояния до соседей (вес ребра = 1)
         for neighbor in graph[current_node]:
-            # Поиск короткого пути для смежной вершины
-            # Если значение расстояние смежной вершины больше чем значение расстояние для текущей вершины +1 
-            if dist[neighbor] > dist[current_node] + 1:
-                dist[neighbor] = dist[current_node] + 1
-
-                # Записываем предка для вершины
+            distance = dist[current_node] + 1  # Все рёбра имеют вес 1
+            if distance < dist[neighbor]:
+                dist[neighbor] = distance
+                # Сохраняем информацию о родительской вершине для построения обратного пути
                 previous[neighbor] = current_node
-                # Добавляем смежную вершину в очередь, и повторяем цикл для нее
-                queue.append(neighbor)
+                
+        # Отмечаем вершину как посещённую (убираем из множества непосещённых вершин)
+        unvisited.remove(current_node)
+    return dist, previous
 
-    # Если указана конечная вершина - возвращаем расстояние и путь
-    if end is not None:
-        # Восстанавливаем путь от end до start, в начале путь пуст
-        path = []
-        # Текущая вершина = конечной вершине
-        current = end
-        # Пока есть текущие веришны выполняем цикл
-        while current is not None:
-            # В путь добавляем текущую вершину
-            path.append(current)
-            # Из словаря предков достаем предка текущей вершины и делаем эту вершину текущей
-            current = previous[current]
-
-        # Разворачиваем путь (так он от последней найденной вершины ддо начальной)
-        path.reverse()
-
-        if path[0] == start:
-            # Возвращаем dist, path (расстояние и путь) 
-            return dist[end], path    
-        else:
+# Функция восстановления пути
+def get_shortest_path(previous, start_node, target):
+    path = []
+    current = target
+    
+    while current != start_node:
+        path.append(current)
+        current = previous[current]
+        if current is None:  # Путь не существует
             return None
+            
+    path.append(start_node)
+    path.reverse()
+    return path
 
-    # Если конечная вершина не указана - возвращаем расстояния    
-    else:
-        return dist
 
 # Граф (список смежности)
 graph = {
-    'A': ['B', 'D', 'I', 'H' ], 
-    'B': ['C', 'F', 'I', 'E', 'J'], 
-    'C': ['G', 'F', 'L', 'B', 'A', 'I'], 
-    'D': ['F'], 
-    'E': ['D', 'J', 'B', 'K'], 
-    'F': ['D', 'M', 'G', 'A', 'C', 'E'], 
-    'G': ['L', 'B', 'F', 'C', 'E'], 
-    'H': ['F'], 
-    'I': ['D'], 
-    'J': ['M', 'F'], 
-    'K': ['L', 'G', 'H', 'B'], 
-    'L': ['K', 'H'], 
-    'M': ['J', 'I', 'L']
-    }
+'A': ['B', 'D', 'I', 'H' ], 
+'B': ['C', 'F', 'I', 'E', 'J'], 
+'C': ['G', 'F', 'L', 'B', 'A', 'I'], 
+'D': ['F'], 
+'E': ['D', 'J', 'B', 'K'], 
+'F': ['D', 'M', 'G', 'A', 'C', 'E'], 
+'G': ['L', 'B', 'F', 'C', 'E'], 
+'H': ['F'], 
+'I': ['D'], 
+'J': ['M', 'F'], 
+'K': ['L', 'G', 'H', 'B'], 
+'L': ['K', 'H'], 
+'M': ['J', 'I', 'L']
+}
 
-
-# Задаем начальную и конечную вершины
+# Начальниая вершина
 start_node = 'A'
-end_node = 'M'
+dist, previous = dijkstra(graph, start_node)
 
-# Все расстояния
-all_distances = dijkstra(graph, start_node)
-print("Расстояния от начальной вершины:")
-print(all_distances)
+print("Кратчайшие расстояния:")
+for node in dist:
+    print(f"{start_node} -> {node}: {dist[node]}")
+print('_______________________')
+print("Кратчайшие пути:")
 
-# Расстояние и путь до конкретной вершины (при наличии значения в переменной end) 
-if end_node:
-    distance, path = dijkstra(graph, start_node, end_node)
-    print(f"Кратчайшее расстояние от {start_node} до {end_node} = {distance}")
-    print(f"Оптимальный путь: {' -> '.join(path)}")
+for node in graph:
+    path = get_shortest_path(previous, start_node, node)
+    if path:
+        print(f"от {start_node} до {node}: {' -> '.join(path)}")
+    else: 
+        print('Нет пути')
